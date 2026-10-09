@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Yomu – Sentence Reading Practice</title>
+<style>
+:root{
+  --bg:#f6f4ef;--card:#fffdf8;--ink:#1f1d1a;--muted:#6d675e;--line:#e4dfd3;
+  --accent:#c2410c;--accentink:#fff;--good:#15803d;--goodbg:#e7f6ec;--bad:#b91c1c;--badbg:#fde8e8;--chip:#efe9dc;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#171512;--card:#211e1a;--ink:#f1ece2;--muted:#a39b8d;--line:#35302a;
+  --accent:#fb923c;--accentink:#1a1008;--good:#4ade80;--goodbg:#14301e;--bad:#f87171;--badbg:#3a1a1a;--chip:#2c2822}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  line-height:1.5;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.wrap{max-width:760px;margin:0 auto;padding:14px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 12px}
+.brand b{font-size:1.5rem;letter-spacing:.04em}
+.brand span{color:var(--muted);font-size:.85rem;margin-left:8px}
+button{font:inherit;color:inherit;cursor:pointer}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 14px}
+.ghost:hover{border-color:var(--muted)}
+.primary{background:var(--accent);color:var(--accentink);border:0;border-radius:10px;padding:11px 22px;font-weight:600}
+.primary:active{transform:translateY(1px)}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;padding:4px 0}
+.focus{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;font-size:.85rem;color:var(--muted)}
+.chip{background:var(--chip);border-radius:8px;padding:2px 9px;font-size:1.05rem;color:var(--ink);
+  font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 18px 20px;
+  box-shadow:0 1px 0 var(--line),0 8px 24px -16px rgba(0,0,0,.25)}
+.meta{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:.85rem}
+.badge{background:var(--chip);border-radius:999px;padding:1px 10px;color:var(--ink);font-weight:600}
+.jp{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP","Meiryo",sans-serif;
+  font-size:clamp(1.65rem,6.3vw,2.6rem);line-height:2.15;margin:10px 0 4px;word-break:keep-all;overflow-wrap:anywhere}
+.jp rt{font-size:.42em;color:var(--muted);letter-spacing:.02em}
+.jp.nofuri:not(.resolved) rt{visibility:hidden}
+.tk{border-radius:6px;padding:0 1px}
+.tk.bad{background:var(--badbg);box-shadow:0 2px 0 var(--bad)}
+.hintrow{min-height:28px;margin-bottom:10px}
+#hint{color:var(--muted);font-style:italic;margin-top:2px}
+form{margin-top:6px}
+#ans{width:100%;font-size:1.2rem;padding:13px 14px;border-radius:12px;border:2px solid var(--line);
+  background:var(--bg);color:var(--ink);outline:none}
+#ans:focus{border-color:var(--accent)}
+#ans[readonly]{opacity:.7}
+.preview{min-height:1.9rem;margin:6px 2px 10px;font-size:1.15rem;color:var(--muted);
+  font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.msg{margin:10px 0 0;color:var(--ink)}
+.msg:not(:empty){background:var(--badbg);border-left:4px solid var(--bad);border-radius:10px;padding:9px 12px}
+#ans.err{border-color:var(--bad)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+.msg b{font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+.banner{border-radius:12px;padding:10px 14px;font-weight:600;margin:16px 0 10px}
+.banner.ok{background:var(--goodbg);color:var(--good)}
+.banner.no{background:var(--chip);color:var(--ink)}
+.banner small{font-weight:400;color:var(--muted);margin-left:8px}
+.trans{font-size:1.15rem;margin:8px 2px 14px}
+.vocab{list-style:none;padding:0;margin:0 0 12px;border-top:1px solid var(--line)}
+.vocab li{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)}
+.vocab .w{font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;font-size:1.2rem;min-width:4.5em}
+.vocab .r{color:var(--muted);font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;min-width:5em}
+.vocab .m{flex:1}
+.spk{background:var(--chip);border:0;border-radius:8px;width:34px;height:34px;flex:none}
+.note{background:var(--chip);border-radius:12px;padding:10px 14px;margin:0 0 16px;font-size:.95rem}
+.note b{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px}
+.audionote{color:var(--muted);font-size:.85rem;margin:0 0 10px}
+footer{color:var(--muted);font-size:.8rem;margin-top:18px;text-align:center}
+kbd{background:var(--chip);border-radius:5px;padding:1px 6px;font-size:.85em}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;
+  overflow:auto;padding:24px 12px;z-index:10}
+#overlay[hidden]{display:none}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:640px;width:100%;padding:18px 20px 22px}
+.panel h2{margin:0 0 4px;font-size:1.2rem}
+.panel h3{margin:22px 0 8px;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.panel .top{display:flex;justify-content:space-between;align-items:center}
+.set{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.set label{display:flex;gap:8px;align-items:center}
+select{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:.8rem;padding:4px 6px}
+td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:middle}
+td.c{font-size:1.5rem;font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+.bar{height:8px;border-radius:99px;background:var(--chip);overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--chip);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:1.3rem}
+.stat span{color:var(--muted);font-size:.8rem}
+textarea{width:100%;min-height:80px;font:12px/1.4 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;padding:8px}
+.empty{color:var(--muted)}
+.jp .sp{margin:0 .1em}
+.jp.nospace .sp{display:none}
+.jp.resolved .wd.fn{border-bottom-color:var(--line)}
+.tiphint{color:var(--muted);font-size:.85rem;margin:-6px 2px 12px}
+form .row{margin-top:12px}
+.jp.resolved .wd{border-bottom:2px dotted var(--muted);cursor:pointer;border-radius:3px}
+.jp.resolved .wd:hover,.jp.resolved .wd:focus{background:var(--chip);outline:none}
+.tip{position:fixed;z-index:20;max-width:260px;background:var(--ink);color:var(--bg);border-radius:10px;
+  padding:8px 12px;font-size:.95rem;box-shadow:0 6px 20px rgba(0,0,0,.3);pointer-events:none;line-height:1.35}
+.tip b{font-size:1.15rem;font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+.tip span{opacity:.8;font-family:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+.tip small{display:block;font-size:.9rem;opacity:.9;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><b>読む</b><span>sentence reading practice</span></div>
+    <button id="btnPanel" class="ghost" type="button">Progress &amp; settings</button>
+  </header>
+
+  <div id="focus" class="focus" hidden></div>
+
+  <main class="card">
+    <div class="meta"><span id="lvl" class="badge"></span><span id="qn"></span><span id="streak"></span></div>
+    <div id="sentence" class="jp" lang="ja"></div>
+    <div class="hintrow">
+      <button id="btnHint" class="link" type="button">Show translation</button>
+      <div id="hint" hidden></div>
+    </div>
+
+    <form id="form" autocomplete="off">
+      <input id="ans" type="text" inputmode="text" enterkeyhint="go" autocapitalize="off" autocorrect="off"
+             spellcheck="false" placeholder="Type the reading in romaji…" aria-label="Answer in romaji">
+      <div id="msg" class="msg" role="status" aria-live="polite"></div>
+      <div class="row">
+        <button class="primary" type="submit">Check</button>
+        <button id="btnGiveUp" class="ghost" type="button">Show answer</button>
+      </div>
+    </form>
+
+    <section id="fb" hidden>
+      <div id="banner" class="banner"></div>
+      <div id="trans" class="trans"></div>
+      <p class="tiphint">Hover a word in the sentence above to see its meaning; click or tap it to hear it.</p>
+      <div class="row" style="margin-bottom:10px">
+        <button id="btnPlay" class="ghost" type="button">🔊 Play sentence</button>
+      </div>
+      <p id="audionote" class="audionote" hidden></p>
+      <ul id="vocab" class="vocab"></ul>
+      <div id="note" class="note"></div>
+      <button id="btnNext" class="primary" type="button">Next →</button>
+    </section>
+  </main>
+
+  <footer>Romaji tips: <kbd>wa</kbd> for particle は, <kbd>o</kbd> or <kbd>wo</kbd> for を, <kbd>e</kbd> for へ. Spaces are ignored. <kbd>Enter</kbd> checks, then moves on.</footer>
+</div>
+
+<div id="tip" class="tip" role="tooltip" hidden></div>
+
+<div id="overlay" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-label="Progress and settings">
+    <div class="top"><h2>Progress &amp; settings</h2><button id="btnClose" class="ghost" type="button">Close</button></div>
+    <h3>Settings</h3>
+    <div class="set">
+      <label>Level
+        <select id="setLevel"><option value="all">N5 + N4</option><option value="5">N5 only</option><option value="4">N4 only</option></select>
+      </label>
+      <label>Audio speed
+        <select id="setRate"><option value="1">Normal</option><option value="0.85">Slower</option><option value="0.7">Slowest</option></select>
+      </label>
+      <label><input type="checkbox" id="setFuri"> Show furigana while answering</label>
+      <label><input type="checkbox" id="setSpaces"> Spaces between words</label>
+      <label><input type="checkbox" id="setAuto"> Auto-play audio after each answer</label>
+    </div>
+    <h3>Summary</h3>
+    <div id="summary" class="stats"></div>
+    <h3>Trouble characters</h3>
+    <div id="trouble"></div>
+    <h3>Backup (move progress between devices)</h3>
+    <div class="row" style="margin-bottom:8px">
+      <button id="btnExport" class="ghost" type="button">Export</button>
+      <button id="btnImport" class="ghost" type="button">Import</button>
+      <button id="btnReset" class="ghost" type="button">Reset all progress</button>
+    </div>
+    <textarea id="backup" placeholder="Exported progress appears here. Paste progress here and press Import to restore it." spellcheck="false"></textarea>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================================================================
+   SENTENCE BANK
+   Markup:  {漢字|かんじ} = kanji with furigana
+            [は|わ]      = particle (displayed は, read わ; typing "ha" is also accepted)
+   Row: [level, markup, English, [[word, reading, meaning], …], grammar note]
+   ================================================================ */
+const RAW = [
+/* ---------- N5 ---------- */
+[5,"{私|わたし}/[は|わ] {学生|がくせい}/です。","I am a student.",[["私","わたし","I, me"],["学生","がくせい","student"]],"A は B です = “A is B.” The topic particle は is pronounced “wa”."],
+[5,"{毎朝|まいあさ}、 {六時|ろくじ}/に {起|お}き/ます。","I get up at six o'clock every morning.",[["毎朝","まいあさ","every morning"],["六時","ろくじ","six o'clock"],["起きる","おきる","to get up, to wake up"]],"Time + に marks a specific point in time."],
+[5,"{今日|きょう}/[は|わ] {天気|てんき}/が いい/です/ね。","The weather is nice today, isn't it?",[["今日","きょう","today"],["天気","てんき","weather"],["いい","","good, nice"]],"〜ですね seeks agreement: “…, isn't it?”"],
+[5,"{駅|えき}/[は|わ] どこ/です/か。","Where is the station?",[["駅","えき","station"],["どこ","","where"]],"〜はどこですか is the basic way to ask where something is."],
+[5,"お{水|みず}/を ください。","Please give me some water.",[["水","みず","water"],["ください","","please give me"]],"Noun + をください = asking for something."],
+[5,"{昨日|きのう}、 {友達|ともだち}/と {映画|えいが}/を {見|み}/ました。","Yesterday I watched a movie with a friend.",[["昨日","きのう","yesterday"],["友達","ともだち","friend"],["映画","えいが","movie"],["見る","みる","to see, to watch"]],"〜ます → 〜ました (polite past). と = “together with”."],
+[5,"{私|わたし}/[は|わ] {毎日|まいにち} {日本語|にほんご}/を {勉強|べんきょう}/します。","I study Japanese every day.",[["毎日","まいにち","every day"],["日本語","にほんご","Japanese language"],["勉強","べんきょう","study"]],"Noun + をします turns a noun into a する-verb (勉強する)."],
+[5,"{図書館|としょかん}/で {本|ほん}/を {読|よ}み/ます。","I read books at the library.",[["図書館","としょかん","library"],["本","ほん","book"],["読む","よむ","to read"]],"で marks the place where an action happens."],
+[5,"{朝|あさ}ご{飯|はん}/[は|わ] {何|なに}/を {食|た}べ/ました/か。","What did you eat for breakfast?",[["朝ご飯","あさごはん","breakfast"],["何","なに","what"],["食べる","たべる","to eat"]],"何を〜ましたか asks “what did you …?”"],
+[5,"{今|いま}、 {何時|なんじ}/です/か。","What time is it now?",[["今","いま","now"],["何時","なんじ","what time"]],"何時 is read なんじ."],
+[5,"この りんご/[は|わ] とても {甘|あま}い/です。","This apple is very sweet.",[["りんご","","apple"],["とても","","very"],["甘い","あまい","sweet"]],"い-adjective + です is polite present."],
+[5,"{私|わたし}/の {家|いえ}/[は|わ] {駅|えき}/から {近|ちか}い/です。","My house is close to the station.",[["家","いえ","house, home"],["駅","えき","station"],["近い","ちかい","near, close"]],"Aから = “from A”."],
+[5,"{日曜日|にちようび}/に {公園|こうえん}/[へ|え] {行|い}き/ます。","I'm going to the park on Sunday.",[["日曜日","にちようび","Sunday"],["公園","こうえん","park"],["行く","いく","to go"]],"Place + へ行きます. The direction particle へ is pronounced “e”."],
+[5,"{電車|でんしゃ}/で {会社|かいしゃ}/[へ|え] {行|い}き/ます。","I go to the office by train.",[["電車","でんしゃ","train"],["会社","かいしゃ","company, office"]],"で also marks the means of transport."],
+[5,"{私|わたし}/[は|わ] {猫|ねこ}/が {好|す}き/です。","I like cats.",[["猫","ねこ","cat"],["好き","すき","liked, fond of"]],"Things you like take が, not を: Aが好きです."],
+[5,"{弟|おとうと}/[は|わ] サッカー/が {上手|じょうず}/です。","My younger brother is good at soccer.",[["弟","おとうと","younger brother"],["サッカー","","soccer"],["上手","じょうず","skilled, good at"]],"Aが上手です = “is good at A.”"],
+[5,"{先生|せんせい}/[は|わ] {今|いま} {教室|きょうしつ}/に います。","The teacher is in the classroom right now.",[["先生","せんせい","teacher"],["教室","きょうしつ","classroom"],["いる","","to be (living things)"]],"Place + にいます = existence of people and animals."],
+[5,"{机|つくえ}/の {上|うえ}/に {本|ほん}/が あります。","There is a book on the desk.",[["机","つくえ","desk"],["上","うえ","top, above"],["ある","","to exist (things)"]],"Place + にあります = existence of things. 〜の上に = “on top of …”."],
+[5,"お{母|かあ}さん/[は|わ] {台所|だいどころ}/で {料理|りょうり}/を しています。","Mom is cooking in the kitchen.",[["お母さん","おかあさん","mother"],["台所","だいどころ","kitchen"],["料理","りょうり","cooking"]],"〜ています = an action in progress (“is doing”)."],
+[5,"この {電話番号|でんわばんごう}/を {教|おし}え/てください。","Please tell me this phone number.",[["電話番号","でんわばんごう","phone number"],["教える","おしえる","to teach, to tell"]],"〜てください = polite request with the て-form."],
+[5,"{窓|まど}/を {開|あ}け/てもいいですか。","May I open the window?",[["窓","まど","window"],["開ける","あける","to open"]],"〜てもいいですか asks for permission."],
+[5,"ここ/で {写真|しゃしん}/を とって/[は|わ]/いけません。","You must not take photos here.",[["写真","しゃしん","photograph"],["とる","","to take (a photo)"]],"〜てはいけません = prohibition (“must not”)."],
+[5,"{今日|きょう}/[は|わ] {雨|あめ}/です/から、 {家|いえ}/に います。","It's raining today, so I'll stay home.",[["雨","あめ","rain"],["家","いえ","house, home"]],"〜から after です = “because…” Reason first, result second."],
+[5,"{私|わたし}/[は|わ] コーヒー/より {お茶|おちゃ}/が {好|す}き/です。","I like tea more than coffee.",[["コーヒー","","coffee"],["お茶","おちゃ","tea"]],"AよりBが好き = “prefer B to A.”"],
+[5,"{昨日|きのう}/[は|わ] {暑|あつ}かった/です。","It was hot yesterday.",[["昨日","きのう","yesterday"],["暑い","あつい","hot (weather)"]],"い-adjective past: 〜い → 〜かった."],
+[5,"この {本|ほん}/[は|わ] {面白|おもしろ}くない/です。","This book isn't interesting.",[["本","ほん","book"],["面白い","おもしろい","interesting, funny"]],"い-adjective negative: 〜い → 〜くない."],
+[5,"{来週|らいしゅう}、 {友達|ともだち}/と {買|か}い{物|もの}/に {行|い}き/ます。","Next week I'm going shopping with a friend.",[["来週","らいしゅう","next week"],["買い物","かいもの","shopping"]],"Noun/verb stem + に行く = “go in order to …”."],
+[5,"{大|おお}きい {犬|いぬ}/が {公園|こうえん}/で {走|はし}って/います。","A big dog is running in the park.",[["大きい","おおきい","big"],["犬","いぬ","dog"],["走る","はしる","to run"]],"Describing what's happening right now with 〜ています."],
+[5,"{仕事|しごと}/[は|わ] {五時|ごじ}/に {終|お}わり/ます。","Work ends at five o'clock.",[["仕事","しごと","work, job"],["終わる","おわる","to end, to finish"]],"終わる is intransitive: work ends by itself."],
+[5,"すみません、 トイレ/[は|わ] どこ/です/か。","Excuse me, where is the restroom?",[["トイレ","","toilet, restroom"],["すみません","","excuse me, sorry"]],"A very useful real-world sentence."],
+[5,"{私|わたし}/の {趣味|しゅみ}/[は|わ] {音楽|おんがく}/を {聞|き}く/こと/です。","My hobby is listening to music.",[["趣味","しゅみ","hobby"],["音楽","おんがく","music"],["聞く","きく","to listen, to hear"]],"Dictionary form + こと turns a verb into a noun phrase."],
+[5,"{彼女|かのじょ}/[は|わ] {目|め}/が {大|おお}きい/です。","She has big eyes.",[["彼女","かのじょ","she, girlfriend"],["目","め","eye"]],"A は B が adj = “As for A, B is …” (double-subject pattern)."],
+[5,"{私|わたし}/[は|わ] パン/と {牛乳|ぎゅうにゅう}/を {買|か}い/ました。","I bought bread and milk.",[["パン","","bread"],["牛乳","ぎゅうにゅう","milk"],["買う","かう","to buy"]],"と joins nouns (“and”)."],
+[5,"デパート/で {新|あたら}しい くつ/を {買|か}い/ました。","I bought new shoes at the department store.",[["デパート","","department store"],["新しい","あたらしい","new"],["くつ","","shoes"]],"Katakana loanword + で marks where the action took place."],
+[5,"ホテル/の {朝|あさ}ご{飯|はん}/[は|わ] {八時|はちじ}/から/です。","Hotel breakfast starts from eight o'clock.",[["ホテル","","hotel"],["朝ご飯","あさごはん","breakfast"]],"Time + からです = “starts from …”."],
+[5,"{先週|せんしゅう}、 {初|はじ}めて スキー/に {行|い}き/ました。","Last week I went skiing for the first time.",[["先週","せんしゅう","last week"],["初めて","はじめて","for the first time"],["スキー","","skiing"]],"Activity + に行く = go to do an activity."],
+[5,"アメリカ{人|じん}/の {友達|ともだち}/が {日本|にほん}/に {来|き}/ました。","My American friend came to Japan.",[["アメリカ人","アメリカじん","American person"],["日本","にほん","Japan"],["来る","くる","to come"]],"〜人 attaches to country names to mean “person from …”."],
+[5,"この シャツ/[は|わ] {少|すこ}し {大|おお}きい/です。","This shirt is a little big.",[["シャツ","","shirt"],["少し","すこし","a little"]],"少し softens an adjective: “a bit …”."],
+[5,"ビール/を {二本|にほん} ください。","Two bottles of beer, please.",[["ビール","","beer"],["二本","にほん","two (long objects, bottles)"]],"The counter 本 is used for bottles and other long, thin objects."],
+[5,"{私|わたし}/の {誕生日|たんじょうび}/[は|わ] {三月|さんがつ} {十日|とおか}/です。","My birthday is March 10th.",[["誕生日","たんじょうび","birthday"],["三月","さんがつ","March"],["十日","とおか","the 10th (irregular)"]],"Dates 1–10 are irregular: 十日 is とおか."],
+[5,"{来月|らいげつ}、 {北海道|ほっかいどう}/[へ|え] {行|い}き/ます。","Next month I'm going to Hokkaido.",[["来月","らいげつ","next month"],["北海道","ほっかいどう","Hokkaido"]],"Direction へ again, pronounced “e”."],
+[5,"{父|ちち}/[は|わ] {毎晩|まいばん} {遅|おそ}く {帰|かえ}り/ます。","My father comes home late every night.",[["父","ちち","(my) father"],["毎晩","まいばん","every night"],["遅い","おそい","late, slow"],["帰る","かえる","to return home"]],"い-adjective → adverb: 〜い → 〜く."],
+[5,"{私|わたし}/[は|わ] おふろ/に {入|はい}って/から {寝|ね}/ます。","I go to bed after I take a bath.",[["おふろ","","bath"],["入る","はいる","to enter, to take (a bath)"],["寝る","ねる","to sleep, to go to bed"]],"〜てから = “after doing …”."],
+[5,"すみません、 もう{一度|いちど} {言|い}って/ください。","Excuse me, please say that once more.",[["もう一度","もういちど","once more"],["言う","いう","to say"]],"A handy phrase for real conversation."],
+[5,"{公園|こうえん}/に {子供|こども}/が たくさん います。","There are lots of children in the park.",[["公園","こうえん","park"],["子供","こども","child"],["たくさん","","many, a lot"]],"いる for people; がたくさんいます = “there are many …”."],
+[5,"その {赤|あか}い かばん/[は|わ] {私|わたし}/の/です。","That red bag is mine.",[["赤い","あかい","red"],["かばん","","bag"]],"Aのです = “it's A's” (mine, yours, Tanaka's…)."],
+[5,"{夜|よる}、 カレー/を {作|つく}り/ました。","I made curry at night.",[["夜","よる","night"],["カレー","","curry"],["作る","つくる","to make"]],"Time word can appear without に when it's a general period like 夜."],
+[5,"{私|わたし}/[は|わ] {毎週|まいしゅう} {土曜日|どようび}/に テニス/を します。","I play tennis every Saturday.",[["毎週","まいしゅう","every week"],["土曜日","どようび","Saturday"],["テニス","","tennis"]],"スポーツをします = “play/do a sport”."],
+[5,"コーヒー/に ミルク/を {入|い}れ/ます/か。","Do you put milk in your coffee?",[["ミルク","","milk"],["入れる","いれる","to put in"]],"AにBを入れる = “put B into A.”"],
+[5,"ここ/で タクシー/を {呼|よ}んで/ください。","Please call a taxi here.",[["タクシー","","taxi"],["呼ぶ","よぶ","to call"]],"〜てください with a verb of calling/summoning."],
+[5,"{私|わたし}/[は|わ] パソコン/で メール/を {書|か}き/ます。","I write emails on my computer.",[["パソコン","","personal computer"],["メール","","email"],["書く","かく","to write"]],"で also marks the tool you use."],
+[5,"レストラン/で サラダ/と スープ/を {食|た}べ/ました。","I ate salad and soup at the restaurant.",[["レストラン","","restaurant"],["サラダ","","salad"],["スープ","","soup"]],"Katakana food words: watch サ vs セ, ス vs ヌ."],
+[5,"{今日|きょう}/[は|わ] デパート/で セール/が あります。","There's a sale at the department store today.",[["セール","","sale"],["デパート","","department store"]],"Events use あります with で for the location."],
+[5,"ソファ/に すわって/ください。","Please sit on the sofa.",[["ソファ","","sofa"],["すわる","","to sit"]],"Place に + すわる = sit on/at."],
+[5,"{私|わたし}/[は|わ] {朝|あさ} シャワー/を あび/ます。","I take a shower in the morning.",[["シャワー","","shower"],["朝","あさ","morning"]],"シャワーをあびる = take a shower."],
+[5,"ツアー/[は|わ] {朝|あさ} {八時|はちじ}/に {出発|しゅっぱつ}/します。","The tour departs at eight in the morning.",[["ツアー","","tour"],["出発","しゅっぱつ","departure"]],"Katakana: ツ and シ look alike; so do ソ and ン."],
+[5,"{姉|あね}/[は|わ] ケーキ/を {作|つく}る/の/が うまい/です。","My older sister is good at making cakes.",[["姉","あね","(my) older sister"],["ケーキ","","cake"],["うまい","","skilled, tasty"]],"Verb + のがうまい = “is good at …ing”."],
+[5,"{妹|いもうと}/[は|わ] {犬|いぬ}/より ネコ/が {好|す}き/です。","My younger sister likes cats more than dogs.",[["妹","いもうと","younger sister"],["ネコ","","cat (katakana)"]],"Animals are often written in katakana."],
+[5,"ノート/に {名前|なまえ}/を {書|か}いて/ください。","Please write your name in the notebook.",[["ノート","","notebook"],["名前","なまえ","name"]],"Place に + 書く = write on/in."],
+[5,"コンサート/の チケット/を {二枚|にまい} {買|か}い/ました。","I bought two concert tickets.",[["コンサート","","concert"],["チケット","","ticket"],["二枚","にまい","two (flat things)"]],"The counter 枚 is for flat things: tickets, paper, shirts."],
+[5,"{日本|にほん}/の マンガ/を {読|よ}む/の/が {好|す}き/です。","I like reading Japanese manga.",[["マンガ","","manga"],["読む","よむ","to read"]],"Verb + のが好きです = “like doing …”."],
+[5,"ワイン/を {少|すこ}し/だけ {飲|の}み/ました。","I drank just a little wine.",[["ワイン","","wine"],["少し","すこし","a little"],["飲む","のむ","to drink"]],"だけ = “only, just”."],
+[5,"{友達|ともだち}/に メール/を {送|おく}り/ました。","I sent an email to a friend.",[["メール","","email"],["送る","おくる","to send"]],"Person + に marks the recipient."],
+[5,"{私|わたし}/[は|わ] テレビ/で ニュース/を {見|み}/ます。","I watch the news on TV.",[["テレビ","","television"],["ニュース","","news"]],"Small ュ combines with ニ: ニュ = nyu."],
+[5,"{私|わたし}/[は|わ] ホテル/で アルバイト/を しています。","I'm working part-time at a hotel.",[["アルバイト","","part-time job"],["ホテル","","hotel"]],"〜ています also describes ongoing situations, not only actions at this moment."],
+
+/* ---------- N4 ---------- */
+[4,"{雨|あめ}/が {降|ふ}って/いる/ので、 {傘|かさ}/を {持|も}って {行|い}き/ます。","Since it's raining, I'll take an umbrella.",[["降る","ふる","to fall (rain, snow)"],["傘","かさ","umbrella"],["持つ","もつ","to hold, to carry"]],"〜ので = “because” (softer, more objective than から)."],
+[4,"{日本|にほん}/に {行|い}った/ことがありますか。","Have you ever been to Japan?",[["日本","にほん","Japan"],["行く","いく","to go"]],"〜たことがある = “have done … before” (experience)."],
+[4,"{駅|えき}/まで {歩|ある}いて {十分|じゅっぷん}/ぐらい かかります。","It takes about ten minutes to walk to the station.",[["歩く","あるく","to walk"],["十分","じゅっぷん","ten minutes"],["かかる","","to take (time/money)"]],"Time + かかります. 〜ぐらい = “about”. 十分 is じゅっぷん."],
+[4,"{私|わたし}/[は|わ] {来年|らいねん} {日本|にほん}/[へ|え] {旅行|りょこう}/に {行|い}く/つもり/です。","I plan to travel to Japan next year.",[["来年","らいねん","next year"],["旅行","りょこう","travel, trip"]],"Dictionary form + つもりです = “intend to …”."],
+[4,"{医者|いしゃ}/に {行|い}った {方|ほう}/が いい/です/よ。","You should go to a doctor.",[["医者","いしゃ","doctor"],["方","ほう","way, side"]],"〜た方がいい = “had better …” (advice)."],
+[4,"{朝|あさ} {早|はや}く {起|お}き/なければなりません。","I have to get up early in the morning.",[["早い","はやい","early, fast"],["起きる","おきる","to get up"]],"〜なければなりません = “must, have to”."],
+[4,"{妹|いもうと}/[は|わ] ピアノ/を ひく/ことができます。","My younger sister can play the piano.",[["ピアノ","","piano"],["ひく","","to play (string/keyboard)"]],"〜ことができる = “can do …” (ability)."],
+[4,"この {部屋|へや}/[は|わ] {静|しず}か/で、 {住|す}み/やすい/です。","This room is quiet and easy to live in.",[["部屋","へや","room"],["静か","しずか","quiet"],["住む","すむ","to live (somewhere)"]],"Verb stem + やすい = “easy to …”. な-adjective + で links clauses."],
+[4,"{家|いえ}/に {帰|かえ}って/から、 {宿題|しゅくだい}/を します。","After I get home, I do my homework.",[["帰る","かえる","to return"],["宿題","しゅくだい","homework"]],"〜てから = “after …”."],
+[4,"{寝|ね}る {前|まえ}/に、 {歯|は}/を みがき/ます。","I brush my teeth before going to bed.",[["寝る","ねる","to sleep"],["前","まえ","before, front"],["歯","は","tooth"]],"Dictionary form + 前に = “before …ing”. (Here 歯 is “ha”, not the particle.)"],
+[4,"{彼|かれ}/[は|わ] ご{飯|はん}/を {食|た}べ/ながら、 テレビ/を {見|み}て/います。","He is watching TV while eating.",[["彼","かれ","he, boyfriend"],["ご飯","ごはん","rice, meal"]],"〜ながら = two simultaneous actions."],
+[4,"{先生|せんせい}/に {質問|しつもん}/して、 よく {分|わ}かり/ました。","I asked the teacher a question and understood well.",[["質問","しつもん","question"],["分かる","わかる","to understand"]],"The て-form links actions in sequence or cause."],
+[4,"この {漢字|かんじ}/の {読|よ}み{方|かた}/を {教|おし}えて/もらえませんか。","Could you teach me how to read this kanji?",[["漢字","かんじ","kanji"],["読み方","よみかた","how to read"]],"〜てもらえませんか = polite “could you …?”"],
+[4,"{冬|ふゆ}/[は|わ] {寒|さむ}い/です/が、 {私|わたし}/[は|わ] {好|す}き/です。","Winter is cold, but I like it.",[["冬","ふゆ","winter"],["寒い","さむい","cold"]],"が after です = “but” (contrasting two clauses)."],
+[4,"{夏|なつ}{休|やす}み/に {海|うみ}/[へ|え] {泳|およ}ぎ/に {行|い}き/たい/です。","I want to go swimming at the sea during summer vacation.",[["夏休み","なつやすみ","summer vacation"],["海","うみ","sea"],["泳ぐ","およぐ","to swim"]],"〜たい = “want to …”, combined with に行く."],
+[4,"さいふ/を {忘|わす}れて/しまいました。","I forgot my wallet (oh no).",[["さいふ","","wallet"],["忘れる","わすれる","to forget"]],"〜てしまう = completion, often with regret."],
+[4,"{電気|でんき}/を つけた/まま、 {寝|ね}て/しまいました。","I fell asleep with the light still on.",[["電気","でんき","electricity, light"],["寝る","ねる","to sleep"]],"〜たまま = “while still in the state of …”."],
+[4,"{友達|ともだち}/に {手紙|てがみ}/を {書|か}いて/あげました。","I wrote a letter for my friend.",[["手紙","てがみ","letter"],["書く","かく","to write"]],"〜てあげる = do a favor for someone."],
+[4,"{友達|ともだち}/に {宿題|しゅくだい}/を {手伝|てつだ}って/もらいました。","I had a friend help me with my homework.",[["宿題","しゅくだい","homework"],["手伝う","てつだう","to help"]],"〜てもらう = receive a favor from someone."],
+[4,"{子供|こども}/の/とき、 よく {川|かわ}/で {遊|あそ}び/ました。","When I was a child, I often played at the river.",[["子供","こども","child"],["川","かわ","river"],["遊ぶ","あそぶ","to play"]],"〜のとき = “when …”. よく = “often”."],
+[4,"この {店|みせ}/の ラーメン/[は|わ] {安|やす}くて、 おいしい/です。","The ramen at this shop is cheap and delicious.",[["店","みせ","shop"],["ラーメン","","ramen"],["安い","やすい","cheap"]],"い-adjective て-form: 〜い → 〜くて links adjectives."],
+[4,"もし {時間|じかん}/が あったら、 {一緒|いっしょ}/に {行|い}き/ませんか。","If you have time, would you like to go together?",[["時間","じかん","time"],["一緒","いっしょ","together"]],"〜たら = “if/when”. 〜ませんか = invitation."],
+[4,"この {道|みち}/を まっすぐ {行|い}く/と、 {右|みぎ}/に {銀行|ぎんこう}/が あります。","If you go straight down this road, there's a bank on the right.",[["道","みち","road, way"],["右","みぎ","right"],["銀行","ぎんこう","bank"]],"〜と = natural consequence, very common in directions."],
+[4,"{私|わたし}/[は|わ] {魚|さかな}/を {食|た}べ/られません。","I can't eat fish.",[["魚","さかな","fish"],["食べる","たべる","to eat"]],"Potential form: 食べる → 食べられる."],
+[4,"{日本語|にほんご}/で {話|はな}す/の/[は|わ] {難|むずか}しい/です。","Speaking in Japanese is difficult.",[["日本語","にほんご","Japanese language"],["話す","はなす","to speak"],["難しい","むずかしい","difficult"]],"Verb + の turns it into a noun phrase: “speaking”."],
+[4,"{彼|かれ}/[は|わ] もう {帰|かえ}り/ました。","He has already gone home.",[["彼","かれ","he"],["帰る","かえる","to go home"]],"もう + past = “already”."],
+[4,"まだ {宿題|しゅくだい}/が {終|お}わって/いません。","I haven't finished my homework yet.",[["宿題","しゅくだい","homework"],["終わる","おわる","to finish"]],"まだ〜ていません = “not yet”."],
+[4,"{空|そら}/が {暗|くら}く/なって/きました。","The sky has started to get dark.",[["空","そら","sky"],["暗い","くらい","dark"]],"〜くなる = “become …”. 〜てくる = change heading toward now."],
+[4,"{東京|とうきょう}/[は|わ] {人|ひと}/が {多|おお}すぎ/ます。","There are too many people in Tokyo.",[["東京","とうきょう","Tokyo"],["多い","おおい","many"]],"Stem + すぎる = “too much”."],
+[4,"{田中|たなか}/さん/[は|わ] {来|こ}ない/と {思|おも}い/ます。","I think Mr. Tanaka won't come.",[["田中","たなか","Tanaka (surname)"],["来る","くる","to come"],["思う","おもう","to think"]],"Plain form + と思います = “I think that …”."],
+[4,"{明日|あした}/[は|わ] {雨|あめ}/が {降|ふ}る/でしょう。","It will probably rain tomorrow.",[["明日","あした","tomorrow"],["降る","ふる","to fall (rain)"]],"〜でしょう = “probably”."],
+[4,"{駅|えき}/の {前|まえ}/に {新|あたら}しい カフェ/が できました。","A new café has opened in front of the station.",[["前","まえ","front, before"],["新しい","あたらしい","new"],["カフェ","","café"],["できる","","to be made, to come into being"]],"Small ェ: フェ = fe. できる here means “come into existence”."],
+[4,"{部屋|へや}/の {電気|でんき}/が {消|き}えて/います。","The light in the room is off.",[["部屋","へや","room"],["消える","きえる","to go out, to disappear"]],"Intransitive verb + ている describes a resulting state."],
+[4,"{母|はは}/[は|わ] {私|わたし}/に {野菜|やさい}/を {食|た}べ/させ/ます。","My mother makes me eat vegetables.",[["母","はは","(my) mother"],["野菜","やさい","vegetables"]],"Causative: 食べる → 食べさせる (make/let someone do)."],
+[4,"{窓|まど}/が {開|あ}いて/います。 {寒|さむ}い/です/から、 {閉|し}めて/ください。","The window is open. It's cold, so please close it.",[["開く","あく","to be open"],["閉める","しめる","to close"],["寒い","さむい","cold"]],"開く (intransitive) vs 閉める (transitive) are a classic pair to notice."],
+[4,"{彼|かれ}/[は|わ] {英語|えいご}/も フランス{語|ご}/も {話|はな}せ/ます。","He can speak both English and French.",[["英語","えいご","English"],["フランス語","フランスご","French"],["話せる","はなせる","can speak"]],"AもBも = “both A and B”."],
+[4,"{電車|でんしゃ}/に {乗|の}って、 {新宿|しんじゅく}/で {降|お}り/ます。","I get on the train and get off at Shinjuku.",[["乗る","のる","to ride, to get on"],["新宿","しんじゅく","Shinjuku"],["降りる","おりる","to get off"]],"〜に乗る / 〜で降りる are the standard transport pairings."],
+[4,"{会議|かいぎ}/[は|わ] {何時|なんじ}/から {始|はじ}まり/ます/か。","What time does the meeting start?",[["会議","かいぎ","meeting"],["始まる","はじまる","to begin"]],"始まる is intransitive: the meeting starts by itself."],
+[4,"{先生|せんせい}/の {話|はなし}/[は|わ] とても {勉強|べんきょう}/に/なりました。","The teacher's talk was very educational.",[["話","はなし","talk, story"],["勉強になる","べんきょうになる","to be educational"]],"〜になる = “become”. 勉強になる = “I learned a lot from it.”"],
+[4,"{私|わたし}/[は|わ] {犬|いぬ}/に {足|あし}/を かまれました。","I got bitten on the leg by a dog.",[["犬","いぬ","dog"],["足","あし","foot, leg"]],"Passive: かむ → かまれる. に marks who did it."],
+[4,"{雪|ゆき}/が {降|ふ}り/そう/です/ね。","It looks like it's going to snow.",[["雪","ゆき","snow"],["降る","ふる","to fall"]],"Verb stem + そうです = “looks like it will …”."],
+[4,"{彼女|かのじょ}/[は|わ] {歌|うた}/が うまい/と {聞|き}き/ました。","I heard that she's good at singing.",[["歌","うた","song"],["聞く","きく","to hear"]],"Plain form + と聞きました = “I heard that …”."],
+[4,"お{金|かね}/が ない/ので、 {何|なに}も {買|か}え/ません。","I don't have any money, so I can't buy anything.",[["お金","おかね","money"],["何も","なにも","nothing (with negative)"],["買える","かえる","can buy"]],"何も + negative = “nothing / not anything”."],
+[4,"スーパー/で {牛肉|ぎゅうにく}/と たまご/を {買|か}い/ました。","I bought beef and eggs at the supermarket.",[["スーパー","","supermarket"],["牛肉","ぎゅうにく","beef"],["たまご","","egg"]],"Katakana: スーパー has a long ー."],
+[4,"{駅|えき}/の {近|ちか}く/に コンビニ/が あって、 {便利|べんり}/です。","There's a convenience store near the station, so it's convenient.",[["近く","ちかく","nearby"],["コンビニ","","convenience store"],["便利","べんり","convenient"]],"て-form of ある links the reason and the result."],
+[4,"{寒|さむ}い/ので、 セーター/を {着|き}て/います。","Because it's cold, I'm wearing a sweater.",[["寒い","さむい","cold"],["セーター","","sweater"],["着る","きる","to wear"]],"着ている = “is wearing” (a state, not an action)."],
+[4,"エレベーター/が こわれて/います。","The elevator is broken.",[["エレベーター","","elevator"],["こわれる","","to break, to be broken"]],"Intransitive verb + ている = resulting state."],
+[4,"{暑|あつ}い/ので、 シャツ/を ぬぎました。","It was hot, so I took off my shirt.",[["暑い","あつい","hot"],["シャツ","","shirt"],["ぬぐ","","to take off (clothes)"]],"Watch for シ/ツ and ぬ/め in this one."]
+];
+
+/* ================================================================
+   KANA TABLES + ROMAJI INPUT (IME-style)
+   ================================================================ */
+const TABLE=[
+['あ','a'],['い','i'],['う','u'],['え','e'],['お','o'],
+['か','ka'],['き','ki'],['く','ku'],['け','ke'],['こ','ko'],
+['さ','sa'],['し','shi si'],['す','su'],['せ','se'],['そ','so'],
+['た','ta'],['ち','chi ti'],['つ','tsu tu'],['て','te'],['と','to'],
+['な','na'],['に','ni'],['ぬ','nu'],['ね','ne'],['の','no'],
+['は','ha'],['ひ','hi'],['ふ','fu hu'],['へ','he'],['ほ','ho'],
+['ま','ma'],['み','mi'],['む','mu'],['め','me'],['も','mo'],
+['や','ya'],['ゆ','yu'],['よ','yo'],
+['ら','ra'],['り','ri'],['る','ru'],['れ','re'],['ろ','ro'],
+['わ','wa'],['を','wo'],
+['が','ga'],['ぎ','gi'],['ぐ','gu'],['げ','ge'],['ご','go'],
+['ざ','za'],['じ','ji zi'],['ず','zu'],['ぜ','ze'],['ぞ','zo'],
+['だ','da'],['ぢ','di'],['づ','du'],['で','de'],['ど','do'],
+['ば','ba'],['び','bi'],['ぶ','bu'],['べ','be'],['ぼ','bo'],
+['ぱ','pa'],['ぴ','pi'],['ぷ','pu'],['ぺ','pe'],['ぽ','po'],
+['きゃ','kya'],['きゅ','kyu'],['きょ','kyo'],
+['しゃ','sha sya'],['しゅ','shu syu'],['しょ','sho syo'],['しぇ','she'],
+['ちゃ','cha cya tya'],['ちゅ','chu cyu tyu'],['ちょ','cho cyo tyo'],['ちぇ','che'],
+['にゃ','nya'],['にゅ','nyu'],['にょ','nyo'],
+['ひゃ','hya'],['ひゅ','hyu'],['ひょ','hyo'],
+['みゃ','mya'],['みゅ','myu'],['みょ','myo'],
+['りゃ','rya'],['りゅ','ryu'],['りょ','ryo'],
+['ぎゃ','gya'],['ぎゅ','gyu'],['ぎょ','gyo'],
+['じゃ','ja jya zya'],['じゅ','ju jyu zyu'],['じょ','jo jyo zyo'],['じぇ','je'],
+['びゃ','bya'],['びゅ','byu'],['びょ','byo'],
+['ぴゃ','pya'],['ぴゅ','pyu'],['ぴょ','pyo'],
+['ふぁ','fa'],['ふぃ','fi'],['ふぇ','fe'],['ふぉ','fo'],
+['てぃ','thi'],['でぃ','dhi'],['うぃ','wi'],['うぇ','we'],
+['ぁ','xa la'],['ぃ','xi li'],['ぅ','xu lu'],['ぇ','xe le'],['ぉ','xo lo'],
+['ゃ','xya lya'],['ゅ','xyu lyu'],['ょ','xyo lyo'],['っ','xtu xtsu ltu ltsu']
+];
+const R2K={}, K2R={}, VOWEL_OF={};
+const V2K={a:'あ',i:'い',u:'う',e:'え',o:'お'};
+for(const [k,al] of TABLE){
+  const a=al.split(' '); K2R[k]=a[0]; for(const r of a) R2K[r]=k;
+  if(k.length===1){ const last=a[0][a[0].length-1]; VOWEL_OF[k]=V2K[last]; }
+}
+Object.assign(VOWEL_OF,{'ゃ':'あ','ゅ':'う','ょ':'お'}); delete VOWEL_OF['っ']; delete VOWEL_OF['ん'];
+
+function kataToHira(ch){const c=ch.charCodeAt(0);return(c>=0x30A1&&c<=0x30F6)?String.fromCharCode(c-0x60):ch;}
+
+function romajiToKana(input){
+  const s=input.normalize('NFKC').toLowerCase().replace(/[’‘ʼ`´′]/g,"'"), out=[], VOW='aiueo';
+  let i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(/[ぁ-ゖァ-ヺー]/.test(c)){out.push(c);i++;continue;}
+    if(!/[a-z'\-]/.test(c)){i++;continue;}
+    if(c==='-'){out.push('ー');i++;continue;}
+    if(c==="'"){i++;continue;}
+    const n1=s[i+1], n2=s[i+2];
+    if(c==='n'){
+      if(n1&&(VOW.includes(n1)||n1==='y')){ /* fall through to table: na, ni, nya… */ }
+      else if(n1==='n'){out.push('ん');i+=(n2&&(VOW.includes(n2)||n2==='y'))?1:2;continue;}
+      else if(n1==="'"){out.push('ん');i+=2;continue;}
+      else{out.push('ん');i++;continue;}
+    }
+    if(c===n1&&/[bcdfghjklmpqrstvwxyz]/.test(c)){out.push('っ');i++;continue;}
+    if(c==='t'&&s.substr(i+1,2)==='ch'){out.push('っ');i++;continue;}
+    let hit=false;
+    for(let len=4;len>=1;len--){
+      const sub=s.substr(i,len);
+      if(sub.length===len&&R2K[sub]){out.push(R2K[sub]);i+=len;hit=true;break;}
+    }
+    if(!hit){out.push(c);i++;}
+  }
+  return out.join('');
+}
+
+/* Normalise to comparable hiragana chars: katakana→hiragana, ー→vowel, を→お, ぢ→じ, づ→ず */
+function normChars(str){
+  const out=[];
+  for(const raw of Array.from(str)){
+    let ch=kataToHira(raw);
+    if(ch==='ー'){const p=out[out.length-1];ch=(p&&VOWEL_OF[p])||'ー';}
+    else if(ch==='を')ch='お'; else if(ch==='ぢ')ch='じ'; else if(ch==='づ')ch='ず';
+    out.push(ch);
+  }
+  return out;
+}
+
+function toRomaji(chars){
+  const syl=[];
+  for(let i=0;i<chars.length;i++){
+    const c=chars[i];
+    if(c==='っ'){syl.push('*');continue;}
+    if(c==='ん'){syl.push('N');continue;}
+    const two=c+(chars[i+1]||'');
+    if(chars[i+1]&&K2R[two]){syl.push(K2R[two]);i++;}
+    else syl.push(K2R[c]||c);
+  }
+  let out='';
+  for(let i=0;i<syl.length;i++){
+    const s=syl[i], nx=syl[i+1]||'';
+    if(s==='*'){ if(nx&&!/^[aiueo*N]/.test(nx)) out+=nx.startsWith('ch')?'t':nx[0]; else out+='xtsu'; continue; }
+    if(s==='N'){ out+=/^[aiueoy]/.test(nx)?"n'":'n'; continue; }
+    out+=s;
+  }
+  return out;
+}
+
+/* ================================================================
+   SENTENCE PARSING
+   ================================================================ */
+function hash(s){let x=5381;for(const c of s)x=((x<<5)+x+c.charCodeAt(0))|0;return(x>>>0).toString(36);}
+/* ---- glossary: particles, endings and a few common words not in the vocab lists ---- */
+const FN={
+'は':'topic marker (pronounced “wa”)','が':'subject marker; at the end of a clause also “but”',
+'を':'object marker (pronounced “o”)','に':'to / at / in; marks time, destination or target; 〜になる = “become”',
+'で':'at / by / with (place of an action, means); after a な-adjective it links clauses (“is …, and”)','へ':'toward, to (pronounced “e”)',
+'と':'and / with; “that” after a quote or thought; after a verb = “when / if”','の':'of, ’s (possession); after a verb it turns it into a noun (“…ing”)',
+'も':'also, too; AもBも = both A and B','から':'from; because; after a て-form = “after …”',
+'まで':'until, up to','より':'than, more than','か':'question marker','ね':'right? (seeking agreement)',
+'よ':'emphasis; telling the listener something','だけ':'only, just','ぐらい':'about, approximately',
+'ので':'because (softer, objective reason)','さん':'Mr. / Ms. (polite title)',
+'です':'is / am / are (polite)','でしょう':'probably; right?',
+'ます':'polite verb ending','ました':'polite past ending','ません':'polite negative ending',
+'ませんか':'polite invitation: won’t you …?','します':'to do (polite)','しています':'is doing (in progress)',
+'います':'to be (living things), polite; after a て-form = “is …ing” or a resulting state','あります':'to be, to exist (things), polite',
+'いる':'to be; after a て-form = “is …ing” (〜ている)','いません':'is not (living things), polite; after a て-form = “isn’t …ing / hasn’t …”',
+'いけません':'must not; not allowed (〜てはいけません)','ください':'please give me','てください':'please do …',
+'てもいいですか':'may I …? (asking permission)','ことがありますか':'have you ever …? (after a た-form)',
+'ことができます':'can do … (ability)','こと':'thing; verb + こと = “the act of …”',
+'つもり':'intention (V + つもりです = “plan to …”)','やすい':'easy to … (after a verb stem)',
+'ながら':'while …ing','たい':'want to …','なければなりません':'must, have to …',
+'もらえませんか':'could you …? (polite request)','しまいました':'ended up …; did … (completely, or with regret)',
+'まま':'as it is, left in that state','あげました':'did … for someone',
+'もらいました':'had someone do …; received the favor of …','とき':'when; the time of …',
+'あったら':'if there is/are (from ある)','あって':'there is … and (て-form of ある)',
+'られません':'cannot … (potential, negative)','ない':'not; there is no …','なって':'became (て-form of なる)',
+'きました':'came; 〜てくる = change heading toward now','なりました':'became','させ':'make/let someone do (causative)',
+'そう':'looks like it will … (after a verb stem)','かまれました':'was bitten (passive of かむ)',
+'できました':'came into being; was made (できる)','つけた':'turned on (past of つける)','みがき':'brush, polish (みがく)',
+'あび':'take (a shower) (あびる)','この':'this (before a noun)','その':'that (before a noun)','ここ':'here',
+'よく':'often; well','もう':'already; more (もう一度 = once more)','もし':'if','まだ':'still; not yet (with negative)',
+'五時':'five o’clock','八時':'eight o’clock','して':'て-form of する (do, and then …)','人':'person, people',
+'まっすぐ':'straight ahead','おいしい':'delicious','おふろ':'bath'
+};
+const LEX=new Map(); RAW.forEach(r=>r[3].forEach(v=>{if(!LEX.has(v[0]))LEX.set(v[0],v);}));
+const KANJI_LEAD=/^[一-鿿々]+/;
+function stemsOf(w){
+  const lead=w.match(KANJI_LEAD);
+  if(lead&&lead[0].length<w.length)return[lead[0]];
+  if(!lead&&w.length>=3&&/[るうくぐすつぬぶむい]$/.test(w))return[w.slice(0,-1)];
+  return[];
+}
+function entry(v){return{w:v[0],r:v[1],m:v[2]};}
+function lookup(surf,local){
+  let best=null,bl=0;
+  const consider=(v,score)=>{if(score>bl||(score===bl&&best&&v[0].length<best[0].length)){best=v;bl=score;}};
+  for(const v of local){
+    const w=v[0];
+    if(surf===w)consider(v,w.length+100);
+    else if(w.length>=2&&surf.includes(w))consider(v,w.length+50);
+    else if(w.length===1&&(surf==='お'+w||surf==='ご'+w))consider(v,w.length+50);
+    else{
+      for(const st of stemsOf(w))if(surf.startsWith(st)||(KANJI_LEAD.test(st)&&surf.includes(st)))consider(v,st.length);
+      if(/^[ぁ-ん]{2}$/.test(w)&&/[るうくぐすつぬぶむ]$/.test(w)&&surf.length>=2&&surf.startsWith(w[0]))consider(v,1);
+    }
+  }
+  if(best)return entry(best);
+  if(FN[surf])return{w:surf,r:'',m:FN[surf],fn:true};
+  for(const [w,v] of LEX){
+    if(surf===w)consider(v,w.length+100);
+    else if(w.length>=2&&surf.includes(w))consider(v,w.length+50);
+    else if(w.length===1&&(surf==='お'+w||surf==='ご'+w))consider(v,w.length+50);
+    else for(const st of stemsOf(w))if(surf.startsWith(st))consider(v,st.length);
+  }
+  return best?entry(best):null;
+}
+
+function build(row){
+  const [level,markup,en,vocab,note]=row;
+  const tokens=[], units=[], segs=[];
+  const pushUnit=(ch,d,tok,alt)=>{
+    let k=kataToHira(ch);
+    if(k==='ー'){const p=units[units.length-1];k=(p&&VOWEL_OF[p.k])||'ー';}
+    else if(k==='を')k='お'; else if(k==='ぢ')k='じ'; else if(k==='づ')k='ず';
+    units.push({k,d,tok,alt});
+  };
+  let segStart=null;
+  const open=()=>{if(segStart===null)segStart=tokens.length;};
+  const closeSeg=()=>{if(segStart!==null){segs.push([segStart,tokens.length-1]);segStart=null;}};
+  const s=markup; let i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(c==='/'){closeSeg();i++;}
+    else if(c==='{'){
+      open();
+      const bar=s.indexOf('|',i), end=s.indexOf('}',i);
+      const base=s.slice(i+1,bar), rd=s.slice(bar+1,end), t=tokens.length;
+      tokens.push({t:'r',base,rd});
+      for(const ch of rd) pushUnit(ch,ch,t);
+      i=end+1;
+    }else if(c==='['){
+      open();
+      const bar=s.indexOf('|',i), end=s.indexOf(']',i);
+      const base=s.slice(i+1,bar), rd=s.slice(bar+1,end), t=tokens.length;
+      tokens.push({t:'p',base});
+      for(const ch of rd) pushUnit(ch,base,t,base);
+      i=end+1;
+    }else if('、。？！ '.includes(c)){
+      closeSeg(); tokens.push({t:'x',base:c}); i++;
+    }else{
+      open(); const t=tokens.length; tokens.push({t:'k',base:c}); pushUnit(c,c,t); i++;
+    }
+  }
+  closeSeg();
+  const words=[];
+  for(const [i0,i1] of segs){
+    const surf=tokens.slice(i0,i1+1).map(t=>t.base).join('');
+    const e=lookup(surf,vocab);
+    words.push({i0,i1,surf,e});
+  }
+  return {id:hash(markup.replace(/[\/ ]/g,'')),level,markup,tokens,units,en,vocab,note,words,
+          plain:tokens.map(t=>t.base).join('').replace(/ /g,'')};
+}
+const SENTENCES=RAW.map(build);
+
+/* ================================================================
+   ALIGNMENT (typed kana vs target units)
+   ================================================================ */
+function matches(u,t){return u.k===t||(u.alt&&u.alt===t);}
+function align(units,typed){
+  const n=units.length,m=typed.length;
+  const D=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=0;i<=n;i++)D[i][0]=i;
+  for(let j=0;j<=m;j++)D[0][j]=j;
+  for(let i=1;i<=n;i++)for(let j=1;j<=m;j++){
+    const sub=matches(units[i-1],typed[j-1])?0:1;
+    D[i][j]=Math.min(D[i-1][j-1]+sub,D[i-1][j]+1,D[i][j-1]+1);
+  }
+  const wrong=[]; let i=n,j=m,extra=0;
+  while(i>0||j>0){
+    if(i>0&&j>0){
+      const sub=matches(units[i-1],typed[j-1])?0:1;
+      if(D[i][j]===D[i-1][j-1]+sub){ if(sub)wrong.push({idx:i-1,typed:typed[j-1]}); i--;j--; continue; }
+    }
+    if(i>0&&D[i][j]===D[i-1][j]+1){wrong.push({idx:i-1,typed:''});i--;continue;}
+    extra++; j--;
+  }
+  return {dist:D[n][m],wrong,extra};
+}
+
+/* ================================================================
+   STORE
+   ================================================================ */
+const LS_KEY='yomu-v1';
+function defaults(){return{stats:{},conf:{},sent:{},recent:[],settings:{level:'all',furi:true,auto:true,spaces:true,rate:1},total:0,firstTry:0,streak:0,best:0};}
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(LS_KEY));
+    if(s&&s.stats){const d=defaults();return Object.assign(d,s,{settings:Object.assign(d.settings,s.settings||{})});}
+  }catch(e){}
+  return defaults();
+}
+let store=load();
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(store));}catch(e){}}
+function st(c){return store.stats[c]||(store.stats[c]={seen:0,miss:0,score:0});}
+
+/* ================================================================
+   SELECTION  (weak characters raise the weight of sentences containing them)
+   ================================================================ */
+function weightOf(s){
+  let sum=0; const seen=new Set();
+  for(const u of s.units){ if(seen.has(u.d))continue; seen.add(u.d); const e=store.stats[u.d]; if(e)sum+=e.score; }
+  let w=1+2*sum;
+  const rec=store.sent[s.id];
+  if(!rec)w*=1.5; else if(rec.lastOk===false)w*=1.4;
+  return Math.min(w,80);
+}
+let recentIds=[];
+function pick(){
+  const lvl=store.settings.level;
+  const pool=SENTENCES.filter(s=>lvl==='all'||String(s.level)===lvl);
+  const avoid=new Set(recentIds.slice(-Math.max(0,Math.min(8,pool.length-1))));
+  const cand=pool.filter(s=>!avoid.has(s.id));
+  const ws=cand.map(weightOf), total=ws.reduce((a,b)=>a+b,0);
+  let r=Math.random()*total;
+  for(let i=0;i<cand.length;i++){r-=ws[i];if(r<=0)return cand[i];}
+  return cand[cand.length-1];
+}
+
+/* ================================================================
+   AUDIO
+   ================================================================ */
+let jaVoices=[];
+function loadVoices(){
+  if(!('speechSynthesis' in window))return;
+  jaVoices=speechSynthesis.getVoices().filter(v=>/^ja/i.test((v.lang||'').replace('_','-')));
+}
+function pickVoice(){
+  const pref=/kyoko|o-ren|nanami|haruka|ayumi|sayaka|google|premium|enhanced/i;
+  return jaVoices.find(v=>pref.test(v.name))||jaVoices[0]||null;
+}
+function speak(text){
+  const note=document.getElementById('audionote');
+  if(!('speechSynthesis' in window)){note.hidden=false;note.textContent='This browser has no speech synthesis, so audio isn’t available.';return;}
+  loadVoices();
+  if(!jaVoices.length){note.hidden=false;note.textContent='No Japanese voice found on this device. Install one in your system’s text-to-speech settings (it often takes a minute to appear).';}
+  else note.hidden=true;
+  try{speechSynthesis.cancel();}catch(e){}
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='ja-JP'; const v=pickVoice(); if(v)u.voice=v; u.rate=Number(store.settings.rate)||1;
+  speechSynthesis.speak(u);
+}
+
+/* ================================================================
+   UI
+   ================================================================ */
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let cur=null, phase='ask', attempts=0, missed=new Set(), t0=0, qn=0;
+
+function renderSentence(s,withWords){
+  const tk=(t,i)=>{
+    if(t.t==='x'&&t.base===' ')return'<span class="sp"> </span>';
+    return t.t==='r'
+      ?`<span class="tk" data-i="${i}"><ruby>${t.base}<rt>${t.rd}</rt></ruby></span>`
+      :`<span class="tk" data-i="${i}">${t.base}</span>`;
+  };
+  const byStart=new Map();
+  if(withWords)s.words.forEach((g,gi)=>{if(g.e)byStart.set(g.i0,[g,gi]);});
+  let h='';
+  for(let i=0;i<s.tokens.length;i++){
+    const hit=byStart.get(i);
+    if(hit){
+      const [g,gi]=hit;
+      h+=`<span class="wd${g.e.fn?' fn':''}" tabindex="0" data-v="${gi}">`;
+      for(let j=g.i0;j<=g.i1;j++)h+=tk(s.tokens[j],j);
+      h+='</span>'; i=g.i1;
+    }else h+=tk(s.tokens[i],i);
+  }
+  $('sentence').innerHTML=h;
+  $('sentence').className='jp'+(store.settings.furi?'':' nofuri')+(store.settings.spaces?'':' nospace');
+}
+function highlight(tokIdx){
+  const set=new Set(tokIdx);
+  $('sentence').querySelectorAll('.tk').forEach(el=>el.classList.toggle('bad',set.has(Number(el.dataset.i))));
+}
+function updateFocus(){
+  const list=Object.entries(store.stats).filter(([c,e])=>e.score>=0.8).sort((a,b)=>b[1].score-a[1].score).slice(0,6);
+  const el=$('focus');
+  if(!list.length){el.hidden=true;return;}
+  el.hidden=false;
+  el.innerHTML='Focusing on: '+list.map(([c])=>`<span class="chip">${esc(c)}</span>`).join('');
+}
+function updateMeta(){
+  $('lvl').textContent='N'+cur.level;
+  $('qn').textContent='Question '+qn;
+  $('streak').textContent=store.streak>1?'Streak '+store.streak:'';
+}
+function next(){
+  cur=pick(); recentIds.push(cur.id); qn++;
+  phase='ask'; attempts=0; missed=new Set();
+  renderSentence(cur); updateMeta(); updateFocus();
+  $('hint').hidden=true; $('btnHint').textContent='Show translation'; hideTip();
+  $('fb').hidden=true; $('msg').textContent=''; $('ans').classList.remove('err');
+  const a=$('ans'); a.value=''; a.readOnly=false;
+  $('form').hidden=false;
+  try{speechSynthesis.cancel();}catch(e){}
+  a.focus({preventScroll:true});
+  t0=performance.now();
+}
+function recordMisses(res){
+  for(const w of res.wrong){
+    if(missed.has(w.idx))continue;
+    missed.add(w.idx);
+    const u=cur.units[w.idx], e=st(u.d);
+    e.miss++; e.score=Math.min(12,e.score+3);
+    if(w.typed){
+      const c=store.conf[u.d]||(store.conf[u.d]={});
+      c[w.typed]=(c[w.typed]||0)+1;
+      if(/[ぁ-ん]/.test(w.typed)&&w.typed!==u.d){const p=st(w.typed);p.score=Math.min(12,p.score+1.5);}
+    }
+  }
+}
+function flash(html){
+  const m=$('msg'), a=$('ans');
+  m.innerHTML=html;
+  a.classList.remove('err'); void a.offsetWidth; a.classList.add('err');
+  m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake');
+}
+function onSubmit(ev){
+  ev.preventDefault();
+  if(phase!=='ask')return;
+  const kana=romajiToKana($('ans').value);
+  const typed=normChars(kana);
+  if(!typed.length){flash('Nothing to check yet. Type the reading in romaji (kana typed with a Japanese keyboard also works).');return;}
+  const res=align(cur.units,typed);
+  attempts++;
+  if(res.dist===0){resolve(true);return;}
+  recordMisses(res); save(); updateFocus();
+  highlight(res.wrong.map(w=>cur.units[w.idx].tok));
+  const spots=new Set(res.wrong.map(w=>cur.units[w.idx].tok)).size;
+  let m=`Not quite. You entered <b>${esc(kana)}</b>. `+
+    (spots?`Check the highlighted part${spots>1?'s':''} and try again.`:'There are extra characters at the end.');
+  const stray=kana.match(/[a-z]+/g);
+  if(stray)m+=`<br>These letters couldn’t be turned into kana, so check for typos: <b>${esc(stray.join(' '))}</b>.`;
+  if(attempts>=2){const exp=cur.units.map(u=>u.k);m+=`<br>Expected reading: <b>${esc(exp.join(''))}</b> (${esc(toRomaji(exp))})`;}
+  flash(m);
+  $('ans').focus({preventScroll:true});
+  $('ans').select();
+}
+function giveUp(){ if(phase==='ask')resolve(false); }
+
+function resolve(ok){
+  phase='done';
+  const s=cur, sec=Math.min(120,(performance.now()-t0)/1000);
+  s.units.forEach((u,i)=>{
+    const e=st(u.d);
+    if(missed.has(i)){e.seen++;}
+    else if(ok){e.seen++;e.score*=0.65;if(e.score<0.15)e.score=0;}
+  });
+  const rec=store.sent[s.id]||(store.sent[s.id]={seen:0,first:0,lastOk:true});
+  const clean=ok&&attempts===1;
+  rec.seen++; if(clean)rec.first++; rec.lastOk=clean;
+  store.total++;
+  if(clean){store.firstTry++;store.streak++;store.best=Math.max(store.best,store.streak);}else store.streak=0;
+  if(ok){store.recent.push({s:+sec.toFixed(1),n:s.units.length,f:clean?1:0});store.recent=store.recent.slice(-40);}
+  save();
+
+  renderSentence(s,true);
+  if(!ok)highlight([...missed].map(i=>s.units[i].tok));
+  $('sentence').classList.add('resolved');
+  $('ans').readOnly=true; $('ans').blur();
+  $('form').hidden=true; $('msg').textContent='';
+  const b=$('banner');
+  if(ok){
+    b.className='banner ok';
+    b.innerHTML=(clean?'✓ Correct':`✓ Correct after ${attempts} tries`)+
+      `<small>⏱ ${sec.toFixed(1)}s · ${(s.units.length/sec).toFixed(1)} kana/s (typing included)</small>`;
+  }else{
+    b.className='banner no';
+    b.innerHTML='Here is the answer<small>'+esc(toRomaji(s.units.map(u=>u.k)))+'</small>';
+  }
+  $('trans').textContent=s.en;
+  $('vocab').innerHTML=s.vocab.map(([w,r,m])=>
+    `<li><button class="spk" type="button" data-say="${esc(r||w)}" aria-label="Play ${esc(w)}">🔊</button>`+
+    `<span class="w">${esc(w)}</span><span class="r">${esc(r)}</span><span class="m">${esc(m)}</span></li>`).join('');
+  $('note').innerHTML='<b>Grammar</b>'+esc(s.note);
+  $('fb').hidden=false; $('audionote').hidden=true;
+  updateFocus(); updateMeta();
+  if(store.settings.auto)speak(s.plain);
+  $('fb').scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+/* ---------- panel ---------- */
+function median(a){if(!a.length)return null;const b=[...a].sort((x,y)=>x-y);const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;}
+function renderPanel(){
+  const st1=store.settings;
+  $('setLevel').value=st1.level; $('setRate').value=String(st1.rate);
+  $('setFuri').checked=!!st1.furi; $('setAuto').checked=!!st1.auto; $('setSpaces').checked=!!st1.spaces;
+  const med=median(store.recent.filter(r=>r.f).slice(-20).map(r=>r.n/Math.max(r.s,.5)));
+  const pct=store.total?Math.round(100*store.firstTry/store.total):0;
+  $('summary').innerHTML=[
+    [store.total,'sentences done'],[pct+'%','correct first try'],[store.best,'best streak'],
+    [med?med.toFixed(1)+' kana/s':'–','typical speed (last 20)']
+  ].map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join('');
+  const rows=Object.entries(store.stats).filter(([c,e])=>e.miss>0||e.score>0.2)
+    .sort((a,b)=>b[1].score-a[1].score||b[1].miss-a[1].miss).slice(0,15);
+  $('trouble').innerHTML=rows.length?
+    '<table><thead><tr><th>Char</th><th>Missed</th><th>Often typed instead</th><th>Focus</th></tr></thead><tbody>'+
+    rows.map(([c,e])=>{
+      const conf=Object.entries(store.conf[c]||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([t,n])=>`${esc(t)} ×${n}`).join('  ')||'–';
+      return `<tr><td class="c">${esc(c)}</td><td>${e.miss}</td><td>${conf}</td><td><div class="bar"><i style="width:${Math.min(100,e.score/12*100)}%"></i></div></td></tr>`;
+    }).join('')+'</tbody></table>'
+    :'<p class="empty">Nothing yet. Characters you miss will show up here and appear more often in your sentences until they stick.</p>';
+}
+function openPanel(){renderPanel();$('overlay').hidden=false;}
+function closePanel(){$('overlay').hidden=true;}
+
+/* ---------- word tooltip ---------- */
+function showTip(el){
+  const g=cur&&cur.words[Number(el.dataset.v)]; if(!g||!g.e)return;
+  const {w,r,m}=g.e, tip=$('tip');
+  tip.innerHTML=`<b>${esc(w)}</b>${r?` <span>${esc(r)}</span>`:''}<small>${esc(m)}</small>`;
+  tip.hidden=false;
+  const rc=el.getBoundingClientRect(), tr=tip.getBoundingClientRect();
+  let x=rc.left+rc.width/2-tr.width/2; x=Math.max(8,Math.min(x,innerWidth-tr.width-8));
+  let y=rc.top-tr.height-8; if(y<8)y=rc.bottom+8;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+function hideTip(){$('tip').hidden=true;}
+const PART_READ={'は':'わ','へ':'え','を':'お'};
+function wordReading(g){
+  return cur.tokens.slice(g.i0,g.i1+1).map(t=>t.t==='r'?t.rd:t.t==='p'?(PART_READ[t.base]||t.base):t.base).join('');
+}
+function speakWord(el){
+  const g=cur&&cur.words[Number(el.dataset.v)];
+  if(g)speak(wordReading(g));
+}
+
+/* ---------- init ---------- */
+function init(){
+  loadVoices();
+  if('speechSynthesis' in window)speechSynthesis.addEventListener&&speechSynthesis.addEventListener('voiceschanged',loadVoices);
+  $('form').addEventListener('submit',onSubmit);
+  $('ans').addEventListener('input',()=>{$('ans').classList.remove('err');});
+  $('btnGiveUp').addEventListener('click',giveUp);
+  $('btnNext').addEventListener('click',next);
+  $('btnPlay').addEventListener('click',()=>speak(cur.plain));
+  $('btnHint').addEventListener('click',()=>{
+    const h=$('hint'); h.hidden=!h.hidden; h.textContent=cur.en;
+    $('btnHint').textContent=h.hidden?'Show translation':'Hide translation';
+  });
+  $('vocab').addEventListener('click',e=>{const b=e.target.closest('.spk');if(b)speak(b.dataset.say);});
+  const sent=$('sentence'), wordOf=e=>(e.target&&e.target.closest)?e.target.closest('.wd'):null;
+  sent.addEventListener('mouseover',e=>{const w=wordOf(e);if(w&&phase==='done')showTip(w);});
+  sent.addEventListener('mouseout',e=>{if(wordOf(e))hideTip();});
+  sent.addEventListener('focusin',e=>{const w=wordOf(e);if(w&&phase==='done')showTip(w);});
+  sent.addEventListener('focusout',hideTip);
+  sent.addEventListener('click',e=>{const w=wordOf(e);if(w&&phase==='done'){showTip(w);speakWord(w);}else hideTip();});
+  sent.addEventListener('keydown',e=>{
+    const w=wordOf(e);
+    if(w&&phase==='done'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();showTip(w);speakWord(w);}
+  });
+  document.addEventListener('click',e=>{if(!(e.target&&e.target.closest&&e.target.closest('#sentence')))hideTip();});
+  window.addEventListener('scroll',hideTip,{passive:true});
+  $('btnPanel').addEventListener('click',openPanel);
+  $('btnClose').addEventListener('click',closePanel);
+  $('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closePanel();});
+  $('setLevel').addEventListener('change',e=>{store.settings.level=e.target.value;save();});
+  $('setRate').addEventListener('change',e=>{store.settings.rate=Number(e.target.value);save();});
+  $('setFuri').addEventListener('change',e=>{store.settings.furi=e.target.checked;save();
+    $('sentence').classList.toggle('nofuri',!e.target.checked);});
+  $('setSpaces').addEventListener('change',e=>{store.settings.spaces=e.target.checked;save();
+    $('sentence').classList.toggle('nospace',!e.target.checked);});
+  $('setAuto').addEventListener('change',e=>{store.settings.auto=e.target.checked;save();});
+  $('btnExport').addEventListener('click',()=>{
+    const t=$('backup'); t.value=JSON.stringify(store); t.select();
+    try{navigator.clipboard&&navigator.clipboard.writeText(t.value);}catch(e){}
+  });
+  $('btnImport').addEventListener('click',()=>{
+    try{
+      const s=JSON.parse($('backup').value);
+      if(!s||!s.stats)throw 0;
+      const d=defaults(); store=Object.assign(d,s,{settings:Object.assign(d.settings,s.settings||{})});
+      save(); renderPanel(); updateFocus(); alert('Progress imported.');
+    }catch(e){alert('That doesn’t look like exported progress.');}
+  });
+  $('btnReset').addEventListener('click',()=>{
+    if(confirm('Erase all progress and settings?')){store=defaults();save();renderPanel();updateFocus();}
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.repeat)return;
+    if(e.key==='Escape'&&!$('overlay').hidden){closePanel();return;}
+    if(!$('overlay').hidden)return;
+    if(e.target&&e.target.closest&&e.target.closest('.wd'))return;
+    if(phase==='done'&&e.key==='Enter'){e.preventDefault();next();}
+  });
+  next();
+}
+
+globalThis.__yomu={lookup,SENTENCES,romajiToKana,normChars,toRomaji,align,build,TABLE,state:()=>({cur,phase,attempts})};
+if(typeof document!=='undefined'&&document.getElementById('sentence')){init();}
+})();
+</script>
+</body>
+</html>
